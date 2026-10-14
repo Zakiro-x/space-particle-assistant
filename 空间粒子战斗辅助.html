@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>空间粒子战斗辅助</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      color-scheme: dark;
+      --bg: #121318;
+      --panel: #1d2028;
+      --panel-2: #252a35;
+      --line: #3b4352;
+      --text: #f3f7fb;
+      --muted: #aab4c2;
+      --cyan: #55c7d7;
+      --gold: #f2b84b;
+      --rose: #e5677f;
+      --green: #67c587;
+      --blue: #7ea7ff;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(85, 199, 215, 0.16), transparent 34%),
+        radial-gradient(circle at 80% 0%, rgba(242, 184, 75, 0.12), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+
+    header {
+      display: flex;
+      gap: 16px;
+      align-items: end;
+      justify-content: space-between;
+      padding: 24px clamp(16px, 3vw, 36px) 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.82fr) minmax(360px, 1.18fr);
+      gap: 16px;
+      padding: 16px clamp(16px, 3vw, 36px) 28px;
+    }
+
+    section {
+      background: rgba(29, 32, 40, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      white-space: nowrap;
+    }
+
+    .section-title button {
+      width: auto;
+      flex: 0 0 auto;
+      min-width: 96px;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    input, select, textarea {
+      min-height: 40px;
+      padding: 8px 10px;
+      background: #11141a;
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 230px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    button {
+      min-height: 40px;
+      padding: 8px 10px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      border-color: var(--cyan);
+      background: #303746;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      border-color: rgba(85, 199, 215, 0.7);
+      background: #1f5963;
+    }
+
+    .danger {
+      border-color: rgba(229, 103, 127, 0.75);
+      background: #69313c;
+    }
+
+    .gold {
+      border-color: rgba(242, 184, 75, 0.75);
+      background: #654e22;
+    }
+
+    .status-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      min-height: 82px;
+      padding: 12px;
+      background: #151922;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .bar {
+      height: 8px;
+      margin-top: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #0d1016;
+    }
+
+    .bar i {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: var(--cyan);
+    }
+
+    .result {
+      min-height: 126px;
+      padding: 12px;
+      margin-top: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: #121720;
+      color: var(--text);
+      line-height: 1.65;
+      white-space: pre-line;
+    }
+
+    .quick-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .roll-input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 84px;
+      gap: 8px;
+    }
+
+    .log-section textarea {
+      height: 260px;
+    }
+
+    .rules {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .rules b {
+      color: var(--text);
+    }
+
+    @media (max-width: 900px) {
+      header, main {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      header, main {
+        display: grid;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .grid-2, .grid-3, .status-board, .quick-row {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>空间粒子战斗辅助</h1>
+      <p>记录自身状态，自动结算高伤、粒子、速度、现实破碎、技能武装和空间领域。</p>
+    </div>
+    <button type="button" class="danger" id="resetAll">重置全部</button>
+  </header>
+
+  <main>
+    <div class="stack">
+      <section>
+        <div class="section-title">
+          <h2>自身状态</h2>
+          <span class="pill" id="modeText">常态</span>
+        </div>
+
+        <div class="status-board">
+          <div class="stat"><span>SAN</span><strong id="sanView">45 / 45</strong><div class="bar"><i id="sanBar"></i></div></div>
+          <div class="stat"><span>生命</span><strong id="hpView">100 / 100</strong><div class="bar"><i id="hpBar"></i></div></div>
+          <div class="stat"><span>速度</span><strong id="speedView">70</strong><div class="bar"><i id="speedBar"></i></div></div>
+          <div class="stat"><span>空间粒子</span><strong id="particleView">5 / 5</strong><div class="bar"><i id="particleBar"></i></div></div>
+        </div>
+
+        <div class="grid-3">
+          <label>SAN 当前<input id="san" type="number" value="45"></label>
+          <label>SAN 上限<input id="sanMax" type="number" value="45"></label>
+          <label>每轮领域耗 SAN<input id="domainSanCost" type="number" value="15"></label>
+          <label>生命当前<input id="hp" type="number" value="100"></label>
+          <label>生命上限<input id="hpMax" type="number" value="100"></label>
+          <label>速度<input id="speed" type="number" value="70"></label>
+          <label>粒子当前<input id="particles" type="number" value="5"></label>
+          <label>粒子上限<input id="particleMax" type="number" value="5"></label>
+          <label>本轮上限已+10
+            <select id="roundBoostUsed">
+              <option value="0">否</option>
+              <option value="1">是</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="quick-row">
+          <button type="button" id="nextRound">下一回合</button>
+          <button type="button" id="enterWeapon">进入技能武装</button>
+          <button type="button" id="saveState">保存状态</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>敌方抗性</h2>
+          <span class="pill">默认现实抗性 25</span>
+        </div>
+        <div class="grid-3">
+          <label>累计高伤次数<input id="highHits" type="number" value="0"></label>
+          <label>现实抗性<input id="realityRes" type="number" value="25"></label>
+          <label>时间抗性<input id="timeRes" type="number" value="30"></label>
+          <label>目标名<input id="targetName" type="text" value="敌人"></label>
+        </div>
+        <div class="result" id="resistanceResult"></div>
+        <div class="quick-row">
+          <button type="button" id="imprison">特殊技：关入空间</button>
+          <button type="button" id="clearTarget">重置目标抗性</button>
+          <button type="button" id="copySummary">复制摘要</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>规则提示</h2>
+          <span class="pill">高伤 = 骰面最大两个数</span>
+        </div>
+        <div class="rules">
+          <p><b>破碎现实：</b>每次高伤获得 8 粒子；每回合第一次高伤令粒子上限 +10；未命中强化可调用 2 粒子算高伤；粒子使用后回归，不会减少；溢出粒子转为速度 +10x。</p>
+          <p><b>现实破碎：</b>累计 3 次高伤后，敌人现实、空间、时间抗性降低。现实技能失效概率按 10x-25 计算，上限 60%。</p>
+          <p><b>技能武装：</b>SAN 低于上限 60% 可进入；调用粒子拟态冷兵器，伤害 xd6 + 速度 1%。速度每满 450 可插入 1 回合。</p>
+          <p><b>空间领域：</b>开启时调用全部粒子造成 AOE，并获得空间之心；领域中每次攻击视为破碎现实，粒子增加改为 12。</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section>
+        <div class="section-title">
+          <h2>攻击结算</h2>
+          <span class="pill" id="diceHint">d4 高伤：3-4</span>
+        </div>
+        <div class="grid-3">
+          <label>攻击类型
+            <select id="attackType">
+              <option value="normal">常态粒子攻击 xd4</option>
+              <option value="weapon">技能武装 xd6+y</option>
+              <option value="slash">空间裂缝偷袭</option>
+              <option value="heart">空间之心协同</option>
+            </select>
+          </label>
+          <label>使用粒子数<input id="cost" type="number" value="5" min="0"></label>
+          <label>骰面
+            <select id="die">
+              <option value="4">d4</option>
+              <option value="6">d6</option>
+              <option value="8">d8</option>
+              <option value="10">d10</option>
+              <option value="12">d12</option>
+            </select>
+          </label>
+          <label>手动骰点
+            <div class="roll-input-row">
+              <input id="manualRolls" type="text" placeholder="留空自动骰；例：4+3+1">
+              <button type="button" id="clearRolls">清除</button>
+            </div>
+          </label>
+          <label>命中情况
+            <select id="hitMode">
+              <option value="hit">命中</option>
+              <option value="miss">未命中</option>
+              <option value="enhanced">技能强化：1 粒子默认命中</option>
+              <option value="missParticles">未命中强化：2 粒子算高伤</option>
+            </select>
+          </label>
+          <label>领域状态
+            <select id="domainActive">
+              <option value="0">未开启</option>
+              <option value="1">空间领域中</option>
+            </select>
+          </label>
+        </div>
+        <div class="quick-row">
+          <button type="button" class="primary" id="rollAttack">投骰并结算</button>
+          <button type="button" id="previewRoll">只投骰不结算</button>
+          <button type="button" id="addCrack">攻击后 rd3 裂缝判定</button>
+        </div>
+        <div class="result" id="attackResult">等待结算。</div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>技能与领域</h2>
+          <span class="pill">裂缝可累计爆发</span>
+        </div>
+        <div class="grid-3">
+          <label>空间裂缝数量<input id="cracks" type="number" value="0" min="0"></label>
+          <label>空间之心数量<input id="hearts" type="number" value="0" min="0"></label>
+          <label>武装入场已损生命<input id="lostHpOnArm" type="number" value="0" min="0"></label>
+        </div>
+        <div class="quick-row">
+          <button type="button" class="gold" id="openDomain">开启空间领域</button>
+          <button type="button" id="domainTick">领域回合结算</button>
+          <button type="button" class="danger" id="heartBreak">死亡/理智绷断：心碎闭合</button>
+        </div>
+        <div class="result" id="skillResult">技能状态会显示在这里。</div>
+      </section>
+
+      <section class="log-section">
+        <div class="section-title">
+          <h2>战斗日志</h2>
+          <button type="button" id="clearLog">清空日志</button>
+        </div>
+        <textarea id="log" readonly></textarea>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const ids = [
+      "san", "sanMax", "domainSanCost", "hp", "hpMax", "speed", "particles", "particleMax",
+      "roundBoostUsed", "highHits", "realityRes", "timeRes", "targetName", "attackType", "cost", "die",
+      "manualRolls", "hitMode", "domainActive", "cracks", "hearts", "lostHpOnArm"
+    ];
+    let costUsesParticleDefault = true;
+
+    function el(id) {
+      return document.getElementById(id);
+    }
+
+    function num(id) {
+      const value = Number(el(id).value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function setNum(id, value) {
+      el(id).value = Math.max(0, Math.round((value + Number.EPSILON) * 100) / 100);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function rollDie(sides) {
+      return Math.floor(Math.random() * sides) + 1;
+    }
+
+    function highThreshold(sides) {
+      return Math.max(1, sides - 1);
+    }
+
+    function isHigh(value, sides) {
+      return value >= highThreshold(sides);
+    }
+
+    function parseRolls(count, sides) {
+      const raw = el("manualRolls").value.trim();
+      if (!raw) {
+        return Array.from({ length: count }, () => rollDie(sides));
+      }
+
+      return raw
+        .split(/[+＋,，\s]+/)
+        .map(item => Number(item.trim()))
+        .filter(value => Number.isFinite(value) && value >= 1 && value <= sides)
+        .slice(0, count);
+    }
+
+    function addLog(text) {
+      const stamp = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+      el("log").value = `[${stamp}] ${text}\n\n` + el("log").value;
+      saveState(false);
+    }
+
+    function gainParticles(amount, reason) {
+      let particles = num("particles") + amount;
+      let max = num("particleMax");
+      let speed = num("speed");
+      let overflow = 0;
+
+      if (particles > max) {
+        overflow = particles - max;
+        speed += overflow * 10;
+        particles = max;
+      }
+
+      setNum("particles", particles);
+      setNum("speed", speed);
+      return `${reason}获得 ${amount} 粒子；溢出 ${overflow}，速度 +${overflow * 10}`;
+    }
+
+    function applyRealityBreak(highCount, forceBroken, highText = "", particleHighCount = highCount) {
+      if (highCount <= 0 && particleHighCount <= 0 && !forceBroken) {
+        return "本次没有触发破碎现实。";
+      }
+
+      let lines = [];
+      if (highCount > 0) {
+        setNum("highHits", num("highHits") + highCount);
+        setNum("realityRes", Math.max(0, num("realityRes") - highCount * 10));
+        setNum("timeRes", Math.max(0, num("timeRes") - highCount * 10));
+      }
+
+      if ((highCount > 0 || forceBroken) && el("roundBoostUsed").value === "0") {
+        setNum("particleMax", num("particleMax") + 10);
+        el("roundBoostUsed").value = "1";
+        lines.push("本回合首次破碎现实：粒子上限 +10。");
+      }
+
+      const gain = el("domainActive").value === "1" ? 12 : 8;
+      const times = forceBroken && particleHighCount === 0 ? 1 : particleHighCount;
+      if (times > 0) {
+        lines.push(gainParticles(gain * times, "破碎现实："));
+      }
+
+      if (highText) {
+        lines.push(highText);
+      }
+
+      lines.push(updateResistance());
+      return lines.join("\n");
+    }
+
+    function calcResistances(highs = num("highHits")) {
+      const skillFail = clamp(highs * 10 - 25, 0, 60);
+      const spaceDamageMultiplier = 1 + highs * 0.1;
+      const timeLost = clamp(highs * 10 - 30, 0, 60);
+      return { highs, skillFail, spaceDamageMultiplier, timeLost };
+    }
+
+    function updateResistance() {
+      const data = calcResistances();
+      const broken = data.highs >= 3 ? "已达到现实破碎" : `距离现实破碎还差 ${3 - data.highs} 次高伤`;
+      const text = [
+        `${el("targetName").value || "敌人"}：${broken}`,
+        `现实抗性：${num("realityRes")}；技能失效概率 ${data.skillFail}%`,
+        `空间抗性降低：空间伤害倍率 x${clean(data.spaceDamageMultiplier)}（1 + 10% × ${data.highs}）`,
+        `时间抗性：${num("timeRes")}：迷失时空乱流一回合概率 ${data.timeLost}%`
+      ].join("\n");
+      el("resistanceResult").textContent = text;
+      return text;
+    }
+
+    function syncView() {
+      const san = num("san");
+      const sanMax = Math.max(1, num("sanMax"));
+      const hp = num("hp");
+      const hpMax = Math.max(1, num("hpMax"));
+      const particles = num("particles");
+      const particleMax = Math.max(1, num("particleMax"));
+      const speed = num("speed");
+      const weaponReady = san < sanMax * 0.6;
+      const insertTurns = Math.floor(speed / 450);
+
+      if (costUsesParticleDefault && document.activeElement !== el("cost")) {
+        setNum("cost", particles);
+      }
+
+      el("sanView").textContent = `${san} / ${sanMax}`;
+      el("hpView").textContent = `${hp} / ${hpMax}`;
+      el("speedView").textContent = String(speed);
+      el("particleView").textContent = `${particles} / ${particleMax}`;
+      el("sanBar").style.width = `${clamp((san / sanMax) * 100, 0, 100)}%`;
+      el("hpBar").style.width = `${clamp((hp / hpMax) * 100, 0, 100)}%`;
+      el("speedBar").style.width = `${clamp((speed / 450) * 100, 0, 100)}%`;
+      el("particleBar").style.width = `${clamp((particles / particleMax) * 100, 0, 100)}%`;
+      el("modeText").textContent = el("domainActive").value === "1"
+        ? `空间领域中；可插入 ${insertTurns} 回合`
+        : weaponReady
+          ? `技能武装可用；可插入 ${insertTurns} 回合`
+          : `常态；武装阈值 < ${Math.floor(sanMax * 0.6)}`;
+      el("diceHint").textContent = `d${num("die")} 高伤：${highThreshold(num("die"))}-${num("die")}`;
+      updateResistance();
+      saveState(false);
+    }
+
+    function calculateAttack(commit) {
+      const type = el("attackType").value;
+      const hitMode = el("hitMode").value;
+      let cost = Math.max(0, Math.floor(num("cost")));
+      let sides = num("die");
+
+      if (type === "normal") {
+        sides = 4;
+        cost = cost || num("particles");
+      } else if (type === "weapon" || type === "slash" || type === "heart") {
+        sides = 6;
+      }
+
+      if (hitMode === "miss") {
+        el("attackResult").textContent = "攻击未命中，没有造成伤害。可选择技能强化默认命中。";
+        return;
+      }
+
+      if ((hitMode === "enhanced" || hitMode === "missParticles") && commit) {
+        const requiredParticles = hitMode === "missParticles" ? 2 : 1;
+        if (num("particles") < requiredParticles) {
+          el("attackResult").textContent = "粒子不足，无法发动技能强化。";
+          return;
+        }
+      }
+
+      if (type === "slash" && commit) {
+        if (num("cracks") < 1) {
+          el("attackResult").textContent = "没有可用空间裂缝。";
+          return;
+        }
+        setNum("cracks", num("cracks") - 1);
+      }
+
+      const count = Math.max(1, Math.floor(cost));
+      const rolls = parseRolls(count, sides);
+      if (rolls.length !== count) {
+        el("attackResult").textContent = `骰点数量不足或超出 d${sides} 范围，需要 ${count} 个结果。`;
+        return;
+      }
+
+      let damage = rolls.reduce((sum, value) => sum + value, 0);
+      const rolledHighCount = rolls.filter(value => isHigh(value, sides)).length;
+      let highCount = rolledHighCount > 0 ? 1 : 0;
+      if (hitMode === "enhanced" || hitMode === "missParticles") {
+        highCount = Math.max(1, highCount);
+      }
+      const guaranteedHighParticles = hitMode === "missParticles" ? 2 : hitMode === "enhanced" ? 1 : 0;
+      const particleHighCount = Math.max(rolledHighCount, guaranteedHighParticles);
+      const discardedHighCount = Math.max(0, particleHighCount - highCount);
+
+      if (type === "weapon" || type === "slash" || type === "heart") {
+        damage += num("speed") * 0.01;
+      }
+
+      const multiplierHighs = num("highHits") + highCount;
+      const spaceDamageMultiplier = calcResistances(multiplierHighs).spaceDamageMultiplier;
+      const finalDamage = damage * spaceDamageMultiplier;
+      const highText = `有效高伤 ${highCount} 次${discardedHighCount ? `，舍弃后续高伤 ${discardedHighCount} 次` : ""}`;
+      const realityText = commit
+        ? applyRealityBreak(highCount, type === "heart" && el("domainActive").value === "1", highText, particleHighCount)
+        : `预览未写入状态。\n${highText}`;
+      const text = [
+        `${commit ? "结算" : "预览"}：${typeName(type)}`,
+        `骰点：${rolls.join(", ")}；`,
+        `伤害：${clean(damage)}`,
+        `真实伤害：${clean(finalDamage)}`,
+        realityText
+      ].join("\n");
+
+      el("attackResult").textContent = text;
+      if (commit) {
+        addLog(text);
+      }
+      syncView();
+    }
+
+    function typeName(type) {
+      return {
+        normal: "常态粒子攻击",
+        weapon: "技能武装攻击",
+        slash: "空间裂缝偷袭",
+        heart: "空间之心协同"
+      }[type] || type;
+    }
+
+    function clean(value) {
+      return Number.isInteger(value) ? String(value) : value.toFixed(2);
+    }
+
+    function enterWeapon() {
+      const san = num("san");
+      const sanMax = num("sanMax");
+      const canEnter = san < sanMax * 0.6;
+      const lostHp = Math.max(0, num("hpMax") - num("hp"));
+      setNum("lostHpOnArm", lostHp);
+      const armor = lostHp * 0.1;
+      const msg = canEnter
+        ? `进入技能武装：常态护甲 ${clean(armor)}。反击者无论成功与否受到 ${clean(num("speed") * 0.01)} 伤害。`
+        : `当前 SAN 未低于上限 60%，通常还不能进入技能武装。若局内允许，可手动继续记录。`;
+      el("skillResult").textContent = msg;
+      addLog(msg);
+    }
+
+    function openDomain() {
+      const particles = num("particles");
+      const damage = particles;
+      setNum("hearts", num("hearts") + 1);
+      el("domainActive").value = "1";
+      const msg = `开启空间领域：调用全部 ${particles} 粒子，造成 ${damage} AOE 伤害，获得 1 个空间之心。粒子使用后回归，不会减少。之后每次攻击视为破碎现实，粒子增加为 12。`;
+      el("skillResult").textContent = msg;
+      addLog(msg);
+      syncView();
+    }
+
+    function domainTick() {
+      if (el("domainActive").value !== "1") {
+        el("skillResult").textContent = "空间领域尚未开启。";
+        return;
+      }
+      setNum("san", Math.max(0, num("san") - num("domainSanCost")));
+      const msg = `领域回合结算：SAN -${num("domainSanCost")}，当前 SAN ${num("san")}。`;
+      el("skillResult").textContent = msg;
+      addLog(msg);
+      syncView();
+    }
+
+    function heartBreak() {
+      const particles = num("particles");
+      setNum("hp", Math.max(1, num("hp")));
+      setNum("san", 20);
+      el("domainActive").value = "0";
+      const msg = `空间之心破碎：锁血，理智锁 20 一回合；随后空间闭合，造成 ${particles} AOE 伤害，粒子回归，不会减少。`;
+      el("skillResult").textContent = msg;
+      addLog(msg);
+      syncView();
+    }
+
+    function nextRound() {
+      el("roundBoostUsed").value = "0";
+      const msg = "进入下一回合：本轮粒子上限 +10 触发次数已重置。";
+      el("skillResult").textContent = msg;
+      addLog(msg);
+      syncView();
+    }
+
+    function addCrack() {
+      const roll = rollDie(3);
+      const gained = roll === 1;
+      if (gained) {
+        setNum("cracks", num("cracks") + 1);
+      }
+      const msg = `空间裂缝判定 rd3=${roll}：${gained ? "生成 1 个空间裂缝。" : "没有生成裂缝。"}`;
+      el("skillResult").textContent = msg;
+      addLog(msg);
+      syncView();
+    }
+
+    function imprison() {
+      const msg = `特殊技：${el("targetName").value || "敌人"} 被关进另一个空间，一回合无法行动。不能连续选中同一人，可挣脱。`;
+      el("resistanceResult").textContent = msg;
+      addLog(msg);
+    }
+
+    function saveState(showMessage = true) {
+      const data = {};
+      ids.forEach(id => data[id] = el(id).value);
+      data.log = el("log").value;
+      localStorage.setItem("spaceParticleAssistant", JSON.stringify(data));
+      if (showMessage) {
+        addLog("状态已保存到本机浏览器。");
+      }
+    }
+
+    function loadState() {
+      try {
+        const data = JSON.parse(localStorage.getItem("spaceParticleAssistant") || "{}");
+        ids.forEach(id => {
+          if (data[id] !== undefined) el(id).value = data[id];
+        });
+        if (data.log) el("log").value = data.log;
+      } catch (error) {
+        localStorage.removeItem("spaceParticleAssistant");
+      }
+    }
+
+    function resetAll() {
+      if (!confirm("确定要重置全部状态和日志吗？")) return;
+      localStorage.removeItem("spaceParticleAssistant");
+      location.reload();
+    }
+
+    function copySummary() {
+      const summary = [
+        `SAN ${num("san")}/${num("sanMax")}，生命 ${num("hp")}/${num("hpMax")}，速度 ${num("speed")}`,
+        `空间粒子 ${num("particles")}/${num("particleMax")}，累计高伤 ${num("highHits")}，现实抗性 ${num("realityRes")}，时间抗性 ${num("timeRes")}`,
+        `裂缝 ${num("cracks")}，空间之心 ${num("hearts")}，领域${el("domainActive").value === "1" ? "开启" : "关闭"}`
+      ].join("\n");
+      navigator.clipboard?.writeText(summary);
+      el("resistanceResult").textContent = summary;
+      addLog("已生成状态摘要。");
+    }
+
+    el("rollAttack").addEventListener("click", () => calculateAttack(true));
+    el("previewRoll").addEventListener("click", () => calculateAttack(false));
+    el("addCrack").addEventListener("click", addCrack);
+    el("enterWeapon").addEventListener("click", enterWeapon);
+    el("openDomain").addEventListener("click", openDomain);
+    el("domainTick").addEventListener("click", domainTick);
+    el("heartBreak").addEventListener("click", heartBreak);
+    el("nextRound").addEventListener("click", nextRound);
+    el("imprison").addEventListener("click", imprison);
+    el("clearTarget").addEventListener("click", () => {
+      setNum("highHits", 0);
+      setNum("realityRes", 25);
+      setNum("timeRes", 30);
+      syncView();
+      addLog("目标抗性已重置。");
+    });
+    el("copySummary").addEventListener("click", copySummary);
+    el("saveState").addEventListener("click", () => saveState(true));
+    el("clearRolls").addEventListener("click", () => {
+      el("manualRolls").value = "";
+      el("manualRolls").focus();
+      syncView();
+    });
+    el("clearLog").addEventListener("click", () => {
+      el("log").value = "";
+      saveState(false);
+    });
+    el("resetAll").addEventListener("click", resetAll);
+    el("cost").addEventListener("input", () => {
+      costUsesParticleDefault = false;
+    });
+    ids.forEach(id => el(id).addEventListener("input", syncView));
+    ids.forEach(id => el(id).addEventListener("change", syncView));
+
+    loadState();
+    syncView();
+  </script>
+</body>
+</html>
